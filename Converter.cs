@@ -1,52 +1,75 @@
-﻿using Converter_C;
 using Newtonsoft.Json;
 using System.Xml.Serialization;
 
 namespace Converter_C
 {
-    public class Files
+    public class Converter
     {
-        public string m_strFormat;
-        private bool m_bResult;
-        private bool m_bResult1;
-        private bool m_bResult2;
-
-        public void ChoiceFormat(List<Human> humans)
+        public void TextToJson(string path)
         {
-            Console.WriteLine("\nВведите путь до файла: ");
-            Console.WriteLine("------------------------");
+            List<Human> humans = new List<Human>();
 
-            m_strFormat = Console.ReadLine();
-            m_bResult = m_strFormat.Contains(".txt");
-            m_bResult1 = m_strFormat.Contains(".json");
-            m_bResult2 = m_strFormat.Contains(".xml");
+            string[] FileInternals = File.ReadAllLines(path);
 
-            if (m_bResult == true)
-                Text(humans);
-            if (m_bResult1 == true) 
-                Json(humans);
-            if (m_bResult2 == true) 
-                Xml(humans);
-        }
+            Human human1 = new Human(FileInternals[0], int.Parse(FileInternals[1]), FileInternals[2]);
+            Human human2 = new Human(FileInternals[3], int.Parse(FileInternals[4]), FileInternals[5]);
 
-        public void Text(List<Human> humans)
-        {
-            Human human = new Human();
-            foreach (Human vivod in humans)
-                File.AppendAllText(m_strFormat, human.m_strName + "\n" + human.m_iAge + "\n" + human.m_strColor);
-        }
+            humans.Add(human1);
+            humans.Add(human2);
 
-        public void Json(List<Human> humans)
-        {
             string json = JsonConvert.SerializeObject(humans);
-            File.WriteAllText(m_strFormat, json);
+            File.WriteAllText(path, json);
+
+            Console.WriteLine("Completed.");
         }
 
-        public void Xml(List<Human> humans)
+        public void TextToXml(string path)
         {
-            XmlSerializer xmls = new XmlSerializer(typeof(List<Human>));
-            using (FileStream fs = new FileStream(m_strFormat, FileMode.OpenOrCreate))
-                xmls.Serialize(fs, humans);
+            List<Human> humans = new List<Human>();
+
+            string[] FileInternals = File.ReadAllLines(path);
+
+            Human human1 = new Human(FileInternals[0], int.Parse(FileInternals[1]), FileInternals[2]);
+            Human human2 = new Human(FileInternals[3], int.Parse(FileInternals[4]), FileInternals[5]);
+
+            humans.Add(human1);
+            humans.Add(human2);
+
+            File.WriteAllText(path, File.ReadAllText(path));
+
+            XmlSerializer xml = new XmlSerializer(typeof(List<Human>));
+            using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate)) { xml.Serialize(fs, humans); }
+
+            Console.WriteLine("Completed.");
+        }
+
+        public void JsonToText(string path)
+        {
+            string txt = File.ReadAllText(path);
+            List<Human> humans = JsonConvert.DeserializeObject<List<Human>>(txt);
+
+            string result = $"{humans[0].m_strName}\n{humans[0].m_iAge}\n{humans[0].m_strColor}\n" +
+                $"{humans[1].m_strName}\n{humans[1].m_iAge}\n{humans[1].m_strColor}\n";
+
+            File.WriteAllText(path, result);
+
+            Console.WriteLine("Completed.");
+        }
+
+        public void XmlToText(string path)
+        {
+            List<Human> humans = new List<Human>();
+
+            XmlSerializer xml = new XmlSerializer(typeof(List<Human>));
+            using (FileStream fs = new FileStream(path, FileMode.Open))
+                humans = (List<Human>)xml.Deserialize(fs);
+
+            string result = $"{humans[0].m_strName}\n{humans[0].m_iAge}\n{humans[0].m_strColor}\n" +
+                $"{humans[1].m_strName}\n{humans[1].m_iAge}\n{humans[1].m_strColor}\n";
+
+            File.WriteAllText(path, result);
+
+            Console.WriteLine("Completed.");
         }
     }
 }
